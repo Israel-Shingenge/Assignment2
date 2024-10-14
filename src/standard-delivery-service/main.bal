@@ -39,9 +39,9 @@ function processMessage(kafka:AnyDataConsumerRecord[] records) {
         // Extract shipmentId from the request
         int shipmentId = checkpanic requestJson.shipmentId.toInt();
 
-        // --- Custom Logic for Standard Delivery ---
+        // Logic for Standard Delivery
 
-        // 1. Retrieve shipment details from the database
+        // Retrieve shipment details from the database
         sql:ParameterizedQuery shipmentQuery = `SELECT * FROM shipments WHERE shipment_id = ${shipmentId}`;
         stream<sql:Row, sql:Error?> shipmentStream = dbClient->query(shipmentQuery);
         sql:Row shipmentResult = checkpanic shipmentStream.next();
@@ -50,15 +50,15 @@ function processMessage(kafka:AnyDataConsumerRecord[] records) {
             return;
         }
 
-        // 2. Generate a random delivery time (simulating delivery process)
+        // Generate a random delivery time (simulating delivery process)
         int deliveryDays = checkpanic random:createIntInRange(3, 7); // Delivery in 3 to 7 days
         string deliveryTimeSlot = "Morning"; // You can add logic for different time slots
 
-        // 3. Update delivery schedule in the database
+        // Update delivery schedule in the database
         sql:ParameterizedQuery scheduleQuery = `INSERT INTO delivery_schedules (shipment_id, pickup_time, delivery_time, tracking_information) VALUES (${shipmentId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + INTERVAL '${deliveryDays} days', 'Your package will be delivered in ${deliveryDays} days, ${deliveryTimeSlot}.') RETURNING schedule_id`;
         sql:ExecutionResult scheduleResult = checkpanic dbClient->execute(scheduleQuery);
 
-        // 4. Update shipment status in the database
+        // Update shipment status in the database
         sql:ParameterizedQuery statusQuery = `UPDATE shipments SET status = 'scheduled' WHERE shipment_id = ${shipmentId}`;
         sql:ExecutionResult statusResult = checkpanic dbClient->execute(statusQuery);
 
