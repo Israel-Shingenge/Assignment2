@@ -1,0 +1,10 @@
+FROM ballerina/ballerina:latest
+
+COPY . /home/ballerina
+WORKDIR /home/ballerina
+
+# Compile the Ballerina project
+RUN ballerina build logistics
+
+# Run the service
+CMD ["ballerina", "run", "logistics/target/bin/logistics.jar"]
